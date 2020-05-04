@@ -1,0 +1,121 @@
+
+default:
+  image: nexuscore/phase-smith-ci:latest
+
+
+stages:
+  - build
+  - test
+  - release
+  - deploy
+  - performance
+  - security
+
+
+# pipeline : development
+
+nx-build-dev:
+  stage:  build
+  script: servitor build
+  only:
+    - /^feature\/.*/i
+    - /^issue\/.*/i
+
+nx-test-dev:
+  stage:  test
+  script: servitor test
+  only:
+    - /^feature\/.*/i
+    - /^issue\/.*/i
+
+nx-release-dev:
+  stage:  release 
+  script: servitor release
+  environment:
+    name: development
+  only:
+    - /^feature\/.*/i
+    - /^issue\/.*/i
+  artifacts:
+    paths:
+      - release/apps-*.tgz
+
+nx-deploy-dev:
+  stage:  deploy
+  script: servitor deploy
+  environment:
+    name: development
+  only:
+    - /^feature\/.*/i
+    - /^issue\/.*/i
+
+
+# pipeline :  staging
+
+nx-build-stg:
+  stage:  build
+  script: servitor build
+  only:
+    - /^release\/.*/i
+
+nx-test-stg:
+  stage:  test
+  script: servitor test
+  only:
+    - /^release\/.*/i
+
+nx-release-stg:
+  stage:  release
+  script: servitor deploy
+  environment:
+    name: staging
+  only:
+    - /^release\/.*/i
+  artifacts:
+    paths:
+      - release/apps-*.tgz
+
+nx-deploy-stg:
+  stage:  deploy
+  script: servitor deploy
+  environment:
+    name: staging
+  only:
+    - /^release\/.*/i
+
+
+# pipeline :  production
+
+nx-build:
+  stage:  build
+  script: servitor build
+  only:
+    refs:
+      - tags
+
+nx-test:
+  stage:  test
+  script: servitor test
+  only:
+    refs:
+      - tags
+
+nx-release:
+  stage:  release
+  script: servitor release
+  only:
+    refs:
+      - tags
+  artifacts:
+    paths:
+      - release/apps-*.tgz
+
+nx-deploy:
+  stage:  deploy
+  script: servitor deploy
+  environment:
+    name: production
+  only:
+    refs:
+      - tags
+
